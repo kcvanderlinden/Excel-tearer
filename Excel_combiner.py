@@ -4,7 +4,7 @@ from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 import openpyxl
 
-def concatenate_excel_files(directory):
+def concatenate_excel_files(directory, dtypes):
     all_files = []
     for root, dirs, files in os.walk(directory):
         for file in files:
@@ -13,7 +13,7 @@ def concatenate_excel_files(directory):
     print(f"Found {len(all_files)} Excel files in {directory}")
     dfs = []
     for file in all_files:
-        df = pd.read_excel(file)
+        df = pd.read_excel(file, dtype=dtypes)
         dfs.append(df)
     return pd.concat(dfs, ignore_index=True)
 
@@ -75,10 +75,14 @@ def create_table(df, worksheet):
     table_range = f"A1:{openpyxl.utils.get_column_letter(len(df.columns))}{len(df) + 1}"
     return openpyxl.worksheet.table.Table(displayName="Table", ref=table_range)
 
-def process_directories(dir1, dir2, merge_column, last_x_columns, output_filename):
+def set_dtype(df, dtype_dict):
+    df = df.astype(dtype_dict)
+    return df
+
+def process_directories(dir1, dir2, merge_column, last_x_columns, output_filename, dtype_dict={}):
     # Concatenate Excel files from both directories
-    df1 = concatenate_excel_files(dir1)
-    df2 = concatenate_excel_files(dir2)
+    df1 = concatenate_excel_files(dir1, dtype_dict)
+    df2 = concatenate_excel_files(dir2, dtype_dict)
 
     # Column rename based on last part of directory name
     dir1_name = os.path.basename(dir1)
@@ -98,5 +102,9 @@ def process_directories(dir1, dir2, merge_column, last_x_columns, output_filenam
     # Merge dataframes on the specified column and save to output file
     merged_df = merge_dataframes(df1, df2, merge_column, output_filename)
 
+    # Set data types for specific columns
+    merged_df = set_dtype(merged_df, dtype_dict)
+
     # Save the merged DataFrame to an Excel file as a formatted table
     save_formatted(output_filename, merged_df)
+    return merged_df
