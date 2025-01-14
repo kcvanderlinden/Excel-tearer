@@ -30,7 +30,7 @@ class ExcelFilterAndSave:
             filtered_df = self.df[(self.df[self.column1] == value1) & (self.df[self.column2] == value2)]
             
             # Create a filename based on the combination values
-            file_name = f"{value1}_{value2}.xlsx".replace(" ", "_").replace("/", "_")
+            file_name = f"{value1}|{value2}.xlsx" # .replace(" ", "_").replace("/", "_")
             output_path = os.path.join('output', file_name)
             
             # Save the filtered DataFrame to an Excel file (without index)
